@@ -43,28 +43,43 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.qualitygate.wait=false
 
-  deploy:
+  deploy-railway:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
 
-      - name: Authenticate to Google Cloud (OIDC)
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: projects/318443350330/locations/global/workloadIdentityPools/github-actions-pool/providers/github
-          service_account: github-actions-deployer@celestial-math-484921-t9.iam.gserviceaccount.com
+      - name: Deploy to Railway
+        run: railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy io-9-10 \
-            --source . \
-            --region europe-central2 \
-            --allow-unauthenticated
+#  deploy:        
+#    needs: build
+#    runs-on: ubuntu-latest
+#    if: github.ref == 'refs/heads/master'
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Authenticate to Google Cloud (OIDC)
+#        uses: google-github-actions/auth@v2
+#        with:
+#          workload_identity_provider: projects/318443350330/locations/global/workloadIdentityPools/github-actions-pool/providers/github
+#          service_account: github-actions-deployer@celestial-math-484921-t9.iam.gserviceaccount.com
+#
+#      - name: Set up gcloud
+#        uses: google-github-actions/setup-gcloud@v2
+#
+#      - name: Deploy to Cloud Run
+#        run: |
+#          gcloud run deploy io-9-10 \
+#            --source . \
+#            --region europe-central2 \
+#            --allow-unauthenticated
 
 
