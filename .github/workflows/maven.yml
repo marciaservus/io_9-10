@@ -1,56 +1,52 @@
 name: Java CI with Maven
 
-"on":
+on:
   push:
     branches: [ "master", "main" ]
   pull_request:
     branches: [ "master", "main" ]
-    
-   permissions:
-    contents: read
-    id-token: write
 
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Wymagane dla SonarCloud
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
 
-    - name: Cache SonarQube packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.sonar/cache
-        key: ${{ runner.os }}-sonar
-        restore-keys: ${{ runner.os }}-sonar
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
-    - name: Build and Analyze
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: >
-        mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-        -Dsonar.projectKey=marciaservus_io_9-10
-        -Dsonar.organization=marciaservus
-        -Dsonar.host.url=https://sonarcloud.io
-        -Dsonar.qualitygate.wait=true
+      - name: Build and Analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=marciaservus_io_9-10 \
+            -Dsonar.organization=marciaservus \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.qualitygate.wait=true
 
-          deploy:
+  deploy:
     needs: build
     runs-on: ubuntu-latest
-
     if: github.ref == 'refs/heads/master'
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,7 +57,7 @@ jobs:
           workload_identity_provider: projects/318443350330/locations/global/workloadIdentityPools/github-actions-pool/providers/github
           service_account: github-actions-deployer@celestial-math-484921-t9.iam.gserviceaccount.com
 
-      - name: Setup gcloud
+      - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy to Cloud Run
@@ -70,4 +66,5 @@ jobs:
             --source . \
             --region europe-central2 \
             --allow-unauthenticated
+
 
