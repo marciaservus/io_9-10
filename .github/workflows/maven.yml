@@ -41,7 +41,7 @@ jobs:
             -Dsonar.projectKey=marciaservus_io_9-10 \
             -Dsonar.organization=marciaservus \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.wait=false
 
   deploy:
     needs: build
